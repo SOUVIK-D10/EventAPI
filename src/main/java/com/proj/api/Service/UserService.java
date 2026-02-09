@@ -14,6 +14,7 @@ import com.proj.api.DTO.LoginDTO;
 import com.proj.api.DTO.TokenDTO;
 import com.proj.api.DTO.UserRegisterDTO;
 import com.proj.api.Exception.AuthorizationFailureException;
+import com.proj.api.Exception.CustomException;
 import com.proj.api.Model.RefreshToken;
 import com.proj.api.Model.User;
 import com.proj.api.Model.UserPrincipals;
@@ -38,11 +39,12 @@ public class UserService implements UserDetailsService {
         this.jwtService=jwtService;
         this.rtService=rtService;
     }
-
-    public void register(UserRegisterDTO dto) {
-        
+    public TokenDTO register(UserRegisterDTO dto) throws CustomException {
+        if(db.existsByRollNo(dto.rollNo())) throw new CustomException("409:Roll number already exists");
+        User user = new User(dto.name(),dto.email(),encoder.encode(dto.password()),dto.rollNo());
+        user = db.save(user);
+        return generateToken(user.getRollNo(), user.getId());
     }
-
     public TokenDTO login(LoginDTO dto) throws AuthorizationFailureException {
         User user = db.findByRollNo(dto.rollNo());
         if(user==null) throw new AuthorizationFailureException("No user found");
@@ -52,28 +54,36 @@ public class UserService implements UserDetailsService {
         if(!user.isAccountActive()) throw new AuthorizationFailureException("Account is Deactivated");
         return generateToken(user.getRollNo(), user.getId());
     }
-    private TokenDTO generateToken(String username,int id){
-        String accessToken = jwtService.generateToken(username);
-        String refreshToken = rtService.generateToken(username);
+    private TokenDTO generateToken(String rollNo,int id){
+        String accessToken = jwtService.generateToken(rollNo);
+        String refreshToken = rtService.generateToken(rollNo);
         db2.save(new RefreshToken(id,refreshToken));
         return new TokenDTO(accessToken, refreshToken);
     }
     @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        User user = db.findByRollNo(email);
-        if(user==null) throw new UsernameNotFoundException("Username is not registered in our database");
+    public UserDetails loadUserByUsername(String rollNo) throws UsernameNotFoundException {
+        User user = db.findByRollNo(rollNo);
+        if(user==null) throw new UsernameNotFoundException("RollNo is not registered in our database");
         return new UserPrincipals(user);
     }
     public TokenDTO refresh(String refreshToken) throws AuthorizationFailureException {
         RefreshToken token = db2.findByToken(refreshToken);
         if(token==null || rtService.isTokenExpired(refreshToken)) throw new AuthorizationFailureException("Invalid Token");
         User user = db.findById(token.getUserId()).get();
-        if(user==null || !user.getRollNo().equals(rtService.extractUserName(refreshToken))) throw new AuthorizationFailureException("Invalid User");
+        if(user==null || !user.getRollNo().equals(rtService.extractRollNo(refreshToken))) throw new AuthorizationFailureException("Invalid User");
         return generateToken(user.getRollNo(), user.getId());
     }
     public void endSession(UserDetails usd) throws AuthorizationFailureException{
         User user = db.findByEmail(usd.getUsername());
         if(user == null) throw new AuthorizationFailureException("Invalid User");
         db2.deleteById(user.getId());
+    }
+    public void updateUser(int id,boolean status){
+        User user = db.getReferenceById(id);
+        db.save(user.setAccountActive(status));
+    }
+    public void roleChange(int id,String role){
+        User user = db.getReferenceById(id);
+        db.save(user.setRole(role.equals(Role.ADMIN)?Role.ADMIN:Role.USER));
     }
 }

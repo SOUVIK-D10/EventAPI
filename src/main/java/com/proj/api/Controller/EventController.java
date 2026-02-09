@@ -4,16 +4,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.proj.api.DTO.EventDTO;
-import com.proj.api.DTO.RegisterDTO;
+
 import com.proj.api.DTO.SearchDTO;
 import com.proj.api.Service.EventService;
 @RestController
@@ -27,11 +24,11 @@ public class EventController {
     SearchDTO dto,
     @RequestParam(value="page",defaultValue = "0",required = false)
     Integer page,
-    @RequestParam(value="size",defaultValue = "10",required = false) 
+    @RequestParam(value="size",defaultValue = "10",required = false)
     Integer size,
-    @RequestParam(value="sortby",defaultValue = "id",required = false) 
+    @RequestParam(value="sortby",defaultValue = "id",required = false)
     String sortby,
-    @RequestParam(value="direction",defaultValue = "asc",required = false) 
+    @RequestParam(value="direction",defaultValue = "asc",required = false)
     String dir
     ){
         if(dto.id()!=null) return new ResponseEntity<>(8,HttpStatus.OK);

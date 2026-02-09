@@ -23,14 +23,14 @@ public class JWTService {
     private String secretKey;
     @Value("${accesstoken.life}")
     private long accessTokenLife;
-    public String generateToken(String username){
+    public String generateToken(String rollNo){
         Map<String,Object> claims = new HashMap<>();
         return Jwts
                     .builder()
                     .claims()
                     .add(claims)
                     .issuedAt(Time.afterNow(0)).expiration(Time.afterNow(accessTokenLife))
-                    .subject(username)
+                    .subject(rollNo)
                     .and()
                     .signWith(getKey())
                     .compact();
@@ -39,12 +39,12 @@ public class JWTService {
         byte[] key = Base64.getDecoder().decode(secretKey);
         return Keys.hmacShaKeyFor(key);
     }
-    public String extractUserName(String token) {
+    public String extractRollNo(String token) {
         return extractClaim(token,Claims::getSubject);
     }
     public boolean isValidToken(String token,UserDetails details) {
-        final String userName = extractUserName(token);
-        return (userName.equals(details.getUsername()) && !isTokenExpired(token));
+        final String rollNo = extractRollNo(token);
+        return (rollNo.equals(details.getUsername()) && !isTokenExpired(token));
     }
     public boolean isTokenExpired(String token){
         return extractExpiration(token).before(new Date());

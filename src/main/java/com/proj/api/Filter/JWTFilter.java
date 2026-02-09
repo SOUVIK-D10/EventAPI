@@ -33,12 +33,12 @@ public class JWTFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)throws ServletException, IOException {
         String authHeader = request.getHeader("Authorization");
         String token = null;
-        String username = null;
+        String rollNo = null;
         if(authHeader!=null && authHeader.startsWith("Bearer ")){
             token = authHeader.substring(7);
-            username = jwtService.extractUserName(token);
-            if(username != null && SecurityContextHolder.getContext().getAuthentication()==null){
-                UserDetails details = userService.loadUserByUsername(username);
+            rollNo = jwtService.extractRollNo(token);
+            if(rollNo != null && SecurityContextHolder.getContext().getAuthentication()==null){
+                UserDetails details = userService.loadUserByUsername(rollNo);
                 if(jwtService.isValidToken(token,details)){
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(details,null,details.getAuthorities());
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
