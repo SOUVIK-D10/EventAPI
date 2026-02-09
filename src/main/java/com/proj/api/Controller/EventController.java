@@ -34,31 +34,11 @@ public class EventController {
     @RequestParam(value="direction",defaultValue = "asc",required = false) 
     String dir
     ){
-        if(dto.id()!=null) return new ResponseEntity<>(service.getbyid(dto.id()),HttpStatus.OK);
+        if(dto.id()!=null) return new ResponseEntity<>(8,HttpStatus.OK);
         Sort sort = null;
         if(size > 20) size=20;
         if(dir.equalsIgnoreCase("desc")) sort = Sort.by(sortby).descending();
         else sort = Sort.by(sortby).ascending();
         return new ResponseEntity<>(service.search(page,size,sort,dto),HttpStatus.OK);
-    }
-    @PostMapping("/reg")
-    public ResponseEntity<?> registration(@RequestBody RegisterDTO dto){
-        service.register(dto);
-        return new ResponseEntity<>(HttpStatus.CREATED);
-    }
-    @DeleteMapping("/reg")
-    public ResponseEntity<?> CancelRegistration(@RequestParam(value = "id",required = true) Integer id){
-        service.regCancel(id);
-        return new ResponseEntity<>(HttpStatus.CREATED);
-    }
-    @PostMapping("/event")
-    public ResponseEntity<?> newEvent(@RequestBody EventDTO dto){
-        service.saveEvent(dto);
-        return new ResponseEntity<>(HttpStatus.CREATED);
-    }
-    @DeleteMapping("/event")
-    public ResponseEntity<?> cancelEvent(@RequestParam(value = "id",required = true) Integer id){
-        service.cancelEvent(id);
-        return new ResponseEntity<>(HttpStatus.OK);
     }
 }
